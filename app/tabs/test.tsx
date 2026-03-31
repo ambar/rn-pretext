@@ -1,12 +1,12 @@
 import { StyleSheet, Text, View } from 'react-native'
 
-export default function SelectionDemo() {
+export default function TestTab() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Web-only demo</Text>
+      <Text style={styles.title}>Test route</Text>
       <Text style={styles.body}>
-        Cross-paragraph selection uses DOM APIs. Open this screen in the web build (
-        <Text style={styles.mono}>npx expo start --web</Text>).
+        Minimal screen used to try stack and tab navigation. Open this tab from the bar
+        below.
       </Text>
     </View>
   )
@@ -15,23 +15,20 @@ export default function SelectionDemo() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 24,
-    paddingTop: 48,
     backgroundColor: '#fff',
   },
   title: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
     marginBottom: 12,
   },
   body: {
     fontSize: 16,
+    textAlign: 'center',
+    color: '#666',
     lineHeight: 24,
-    color: '#444',
-  },
-  mono: {
-    fontFamily: 'monospace',
-    fontSize: 14,
-    color: '#0066cc',
   },
 })

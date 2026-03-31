@@ -1,4 +1,4 @@
-// import "@formatjs/intl-segmenter/polyfill-force";
+import "@formatjs/intl-segmenter/polyfill-force";
 
 /**
  * OffscreenCanvas polyfill for React Native using @shopify/react-native-skia.

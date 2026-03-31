@@ -4,16 +4,22 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "~/*": ["./*"]
+      "~/*": [
+        "./*"
+      ]
     },
     "skipLibCheck": true,
     "noImplicitAny": false
   },
   "include": [
     "**/*.ts",
-    "**/*.tsx",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts"
+    "**/*.tsx"
   ],
-  "exclude": ["node_modules", "**/test", "**/dist", "**/types", "**/__tests__"]
+  "exclude": [
+    "node_modules",
+    "**/test",
+    "**/dist",
+    "**/types",
+    "**/__tests__"
+  ]
 }

@@ -11,12 +11,22 @@ export default function TabsLayout() {
         },
         tabBarActiveTintColor: '#007AFF',
         tabBarInactiveTintColor: '#666',
-        tabBarLabelStyle: { fontSize: 14, fontWeight: '600' },
+        tabBarLabelStyle: { fontSize: 13, fontWeight: '600' },
+        headerTitleAlign: 'center',
       }}
     >
-      <Tabs.Screen name="index" options={{ title: 'Home' }} />
-      <Tabs.Screen name="profile" options={{ title: 'Profile' }} />
-      <Tabs.Screen name="settings" options={{ title: 'Settings' }} />
+      <Tabs.Screen
+        name="index"
+        options={{ title: 'Pretext', tabBarLabel: 'Pretext' }}
+      />
+      <Tabs.Screen
+        name="test"
+        options={{ title: 'Test route', tabBarLabel: 'Test' }}
+      />
+      <Tabs.Screen
+        name="selection"
+        options={{ title: 'Selection', tabBarLabel: 'Selection' }}
+      />
     </Tabs>
   )
 }

@@ -16,7 +16,7 @@ const SAMPLE_PARAGRAPHS = [
   `Try selecting across multiple paragraphs! Click and drag from any position to any other position. The blue highlight should follow your selection across paragraph boundaries. 🎉`,
 ]
 
-export default function SelectionDemo() {
+export default function SelectionTabWeb() {
   const [maxWidth, setMaxWidth] = useState(600)
 
   const document: Document = useMemo(
@@ -33,7 +33,7 @@ export default function SelectionDemo() {
   )
 
   return (
-    <div style={{ padding: 40, fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div style={{ padding: 24, fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>
         Cross-Paragraph Text Selection
       </h1>
@@ -42,10 +42,11 @@ export default function SelectionDemo() {
       </p>
 
       <div style={{ marginBottom: 20 }}>
-        <label style={{ fontSize: 13, fontWeight: 600, color: '#333' }}>
+        <label htmlFor="selection-width" style={{ fontSize: 13, fontWeight: 600, color: '#333' }}>
           Container width: {maxWidth}px
         </label>
         <input
+          id="selection-width"
           type="range"
           min={300}
           max={900}

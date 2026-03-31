@@ -31,6 +31,8 @@ tsconfig.tsbuildinfo
 
 .expo
 
+expo-env.d.ts
+
 # generated code
 /ios
 /android
