@@ -9,6 +9,7 @@ declare module 'one' {
       StaticRoutes: 
         | `/`
         | `/_sitemap`
+        | `/selection`
         | `/tabs`
         | `/tabs/`
         | `/tabs/profile`
