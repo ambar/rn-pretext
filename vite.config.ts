@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [
     one({
       web: {
-        defaultRenderMode: 'ssg',
+        defaultRenderMode: 'spa',
       },
 
       ...(process.env.TEST_METRO && {
