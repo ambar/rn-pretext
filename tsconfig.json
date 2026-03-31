@@ -1,38 +1,19 @@
 {
+  "extends": "expo/tsconfig.base",
   "compilerOptions": {
+    "strict": true,
     "baseUrl": ".",
     "paths": {
-      "~/*": [
-        "./*"
-      ]
+      "~/*": ["./*"]
     },
-    "strict": true,
-    "rootDir": ".",
-    "module": "Preserve",
-    "moduleResolution": "Bundler",
-    "preserveSymlinks": true,
     "skipLibCheck": true,
-    "jsx": "react-jsx",
-    "noImplicitAny": false,
-    "types": [
-      "node",
-      "react",
-      "vite/client"
-    ],
-    "lib": [
-      "dom",
-      "esnext"
-    ]
+    "noImplicitAny": false
   },
-  "exclude": [
-    "node_modules",
-    ".expo",
-    "**/test",
-    "**/dist",
-    "**/types",
-    "**/__tests__"
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
   ],
-  "typeAcquisition": {
-    "enable": true
-  },
+  "exclude": ["node_modules", "**/test", "**/dist", "**/types", "**/__tests__"]
 }

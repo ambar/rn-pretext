@@ -16,7 +16,7 @@ const SAMPLE_TEXT =
   "This text is being measured and laid out by pretext running on React Native, " +
   "with @shopify/react-native-skia providing the text measurement backend.";
 
-export function Index() {
+export default function Index() {
   const [width, setWidth] = useState(320);
   const [text, setText] = useState(SAMPLE_TEXT);
 

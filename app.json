@@ -2,8 +2,9 @@
   "expo": {
     "name": "rn-pretext",
     "slug": "rn-pretext",
-    "platforms": ["ios", "android"],
-    "plugins": ["vxrn/expo-plugin"],
+    "scheme": "rnpretext",
+    "platforms": ["ios", "android", "web"],
+    "plugins": ["expo-router"],
     "icon": "./public/app-icon.png",
     "splash": {
       "image": "./public/splash.png",

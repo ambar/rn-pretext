@@ -1,7 +1,10 @@
-Welcome to One!
+# rn-pretext
 
-To run your app:
+Expo app (Expo Router). Install and run with [Bun](https://bun.sh):
 
+```bash
+bun install
+bun run start
 ```
-npm run one
-```
+
+Other scripts: `bun run web`, `bun run ios`, `bun run android`, `bun run prebuild`.

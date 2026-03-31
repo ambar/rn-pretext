@@ -5,7 +5,7 @@ export default function HomeTab() {
     <View style={styles.container}>
       <Text style={styles.title}>Home Tab</Text>
       <Text style={styles.description}>
-        This is a custom headless tab implementation using One's UI primitives.
+        Demo tab screen using Expo Router tabs.
       </Text>
     </View>
   )

@@ -1,24 +1,15 @@
-import { Slot } from 'one'
-import { Platform } from 'react-native'
+import { Stack } from 'expo-router'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
 
-export default function Layout() {
-  if (Platform.OS === 'web') {
-    return (
-      <html lang="en-US">
-        <head>
-          <meta charSet="utf-8" />
-          <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
-          <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1, maximum-scale=5"
-          />
-          <link rel="icon" href="/favicon.svg" />
-        </head>
-
-        <Slot />
-      </html>
-    )
-  }
-
-  return <Slot />
+export default function RootLayout() {
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Stack>
+        <Stack.Screen name="index" options={{ title: 'Pretext' }} />
+        <Stack.Screen name="test" options={{ title: 'Test' }} />
+        <Stack.Screen name="selection" options={{ title: 'Selection' }} />
+        <Stack.Screen name="tabs" options={{ headerShown: false }} />
+      </Stack>
+    </GestureHandlerRootView>
+  )
 }
