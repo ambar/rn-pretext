@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "rn-pretext",
+    "slug": "rn-pretext",
+    "platforms": ["ios", "android"],
+    "plugins": ["vxrn/expo-plugin"],
+    "icon": "./public/app-icon.png",
+    "splash": {
+      "image": "./public/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
+    "ios": {
+      "bundleIdentifier": "com.ambar.rnpretext"
+    },
+    "android": {
+      "package": "com.ambar.rnpretext"
+    }
+  }
+}
