@@ -1,4 +1,4 @@
-import { prepareWithSegments, layoutWithLines } from '@chenglou/pretext'
+import { prepareWithSegments, layoutWithLines } from '../../src/pretext'
 import type { Document, ParagraphLayout } from './types'
 
 /**
