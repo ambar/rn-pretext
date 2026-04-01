@@ -1,4 +1,5 @@
 import { Tabs } from 'expo-router'
+import Ionicons from '@expo/vector-icons/Ionicons'
 
 export default function TabsLayout() {
   return (
@@ -17,15 +18,33 @@ export default function TabsLayout() {
     >
       <Tabs.Screen
         name="index"
-        options={{ title: 'Pretext', tabBarLabel: 'Pretext' }}
+        options={{
+          title: 'Pretext',
+          tabBarLabel: 'Pretext',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="text-outline" size={size} color={color} />
+          ),
+        }}
       />
       <Tabs.Screen
         name="test"
-        options={{ title: 'Test route', tabBarLabel: 'Test' }}
+        options={{
+          title: 'Test route',
+          tabBarLabel: 'Test',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="flask-outline" size={size} color={color} />
+          ),
+        }}
       />
       <Tabs.Screen
         name="selection"
-        options={{ title: 'Selection', tabBarLabel: 'Selection' }}
+        options={{
+          title: 'Selection',
+          tabBarLabel: 'Selection',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="scan-outline" size={size} color={color} />
+          ),
+        }}
       />
     </Tabs>
   )
