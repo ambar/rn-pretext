@@ -10,8 +10,10 @@ import "@formatjs/intl-segmenter/polyfill-force";
 // navigator.userAgent polyfill — exists in RN but userAgent is undefined,
 // which crashes pretext's getEngineProfile() on `ua.includes(...)`.
 if (typeof navigator !== "undefined" && !navigator.userAgent) {
-  (navigator as any).userAgent = "";
-  (navigator as any).vendor = "";
+  // Simulate Safari so pretext's getEngineProfile() picks the Apple/WebKit
+  // branch (lineFitEpsilon = 1/64, preferPrefixWidthsForBreakableRuns, etc.)
+  (navigator as any).userAgent = "Safari/1";
+  (navigator as any).vendor = "Apple Computer, Inc.";
 }
 
 import { matchFont } from "@shopify/react-native-skia";
