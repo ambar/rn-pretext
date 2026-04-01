@@ -1,30 +1,54 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
+  useWindowDimensions,
 } from 'react-native'
+import Slider from '@react-native-community/slider'
 import {
   prepare,
   layout,
   prepareWithSegments,
   layoutWithLines,
 } from '../../src/pretext'
+import { DEMO_PRESETS } from '../../lib/pretext-selection/selection-demo-data'
 
 const FONT = '16px System'
 const LINE_HEIGHT = 24
 
-const SAMPLE_TEXT =
+const DEFAULT_TEXT =
   'Pretext is a pure JavaScript library for multiline text measurement and layout. ' +
   'It computes text dimensions without touching the DOM — avoiding expensive layout reflow. ' +
   'This text is being measured and laid out by pretext running on React Native, ' +
   'with @shopify/react-native-skia providing the text measurement backend.'
 
+const TEXT_PRESETS = [
+  { label: 'Default', text: DEFAULT_TEXT },
+  ...DEMO_PRESETS.map((p) => ({
+    label: p.label,
+    text: p.paragraphs.join('\n\n'),
+  })),
+]
+
+const MIN_WIDTH = 200
+
 export default function PretextTab() {
-  const [width, setWidth] = useState(320)
-  const [text, setText] = useState(SAMPLE_TEXT)
+  const { width: windowWidth } = useWindowDimensions()
+  const sliderMax = Math.max(MIN_WIDTH, Math.floor(windowWidth))
+
+  const [width, setWidth] = useState(() =>
+    Math.min(320, Math.max(MIN_WIDTH, Math.floor(windowWidth))),
+  )
+  const [text, setText] = useState(TEXT_PRESETS[0].text)
+  const [activePreset, setActivePreset] = useState(0)
+
+  useEffect(() => {
+    setWidth((w) => Math.min(Math.max(w, MIN_WIDTH), sliderMax))
+  }, [sliderMax])
 
   const prepared = prepare(text, FONT)
   const result = layout(prepared, width, LINE_HEIGHT)
@@ -42,16 +66,48 @@ export default function PretextTab() {
       <Text style={styles.subtitle}>Text measurement via Skia</Text>
 
       <View style={styles.section}>
-        <Text style={styles.label}>Container width: {width}px</Text>
-        <TextInput
+        <Text style={styles.label}>
+          Container width: {width}px (max {sliderMax}px)
+        </Text>
+        <Slider
           style={styles.slider}
-          keyboardType="numeric"
-          value={String(width)}
-          onChangeText={(v) => {
-            const n = parseInt(v, 10)
-            if (!Number.isNaN(n) && n > 0) setWidth(n)
-          }}
+          minimumValue={MIN_WIDTH}
+          maximumValue={sliderMax}
+          value={width}
+          step={1}
+          onValueChange={(v) => setWidth(Math.round(v))}
+          minimumTrackTintColor="#007AFF"
+          maximumTrackTintColor="#ddd"
+          thumbTintColor="#007AFF"
         />
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.label}>Presets</Text>
+        <View style={styles.presetRow}>
+          {TEXT_PRESETS.map((preset, i) => (
+            <Pressable
+              key={i}
+              style={[
+                styles.presetChip,
+                activePreset === i && styles.presetChipActive,
+              ]}
+              onPress={() => {
+                setActivePreset(i)
+                setText(preset.text)
+              }}
+            >
+              <Text
+                style={[
+                  styles.presetChipText,
+                  activePreset === i && styles.presetChipTextActive,
+                ]}
+              >
+                {preset.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
       </View>
 
       <View style={styles.section}>
@@ -60,7 +116,10 @@ export default function PretextTab() {
           style={styles.textInput}
           multiline
           value={text}
-          onChangeText={setText}
+          onChangeText={(v) => {
+            setText(v)
+            setActivePreset(-1)
+          }}
         />
       </View>
 
@@ -124,11 +183,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   slider: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 16,
+    width: '100%',
+    height: 40,
   },
   textInput: {
     borderWidth: 1,
@@ -186,5 +242,29 @@ const styles = StyleSheet.create({
   previewText: {
     fontSize: 16,
     lineHeight: 24,
+  },
+  presetRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  presetChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    backgroundColor: '#fff',
+  },
+  presetChipActive: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+  },
+  presetChipText: {
+    fontSize: 13,
+    color: '#333',
+  },
+  presetChipTextActive: {
+    color: '#fff',
   },
 })

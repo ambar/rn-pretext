@@ -6,7 +6,7 @@ import { useSelectionState } from './selection-state'
 import { computeSelectionRects } from './selection-geometry'
 import { useSelectionGestures } from './use-selection-gestures.native'
 import { SelectionHighlight } from './SelectionHighlight'
-import { TextLine } from './TextLine'
+import { TextLine } from './TextLine.native'
 
 export function SelectableDocument(props: {
   document: Document
@@ -68,6 +68,7 @@ export function SelectableDocument(props: {
               line={line}
               top={layout.yOffset + li * layout.lineHeight}
               font={document.paragraphs[pi].font}
+              lineHeight={layout.lineHeight}
             />
           )),
         )}

@@ -1,4 +1,4 @@
-import { Text, StyleSheet, type TextStyle } from 'react-native'
+import { Platform, Text, StyleSheet, type TextStyle } from 'react-native'
 import type { LayoutLine } from '@chenglou/pretext'
 
 function parseFont(font: string): Pick<TextStyle, 'fontSize' | 'fontFamily'> {
@@ -13,14 +13,28 @@ export function TextLine({
   line,
   top,
   font,
+  lineHeight,
 }: {
   line: LayoutLine
   top: number
   font: string
+  /** Must match layout-engine / pretext line height or lines overlap (especially CJK). */
+  lineHeight: number
 }) {
   const f = parseFont(font)
   return (
-    <Text style={[styles.line, { top, fontSize: f.fontSize, fontFamily: f.fontFamily }]}>
+    <Text
+      style={[
+        styles.line,
+        Platform.OS === 'android' ? styles.lineAndroid : null,
+        {
+          top,
+          fontSize: f.fontSize,
+          fontFamily: f.fontFamily,
+          lineHeight,
+        },
+      ]}
+    >
       {line.text}
     </Text>
   )
@@ -31,5 +45,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     color: '#000',
+  },
+  lineAndroid: {
+    includeFontPadding: false,
   },
 })

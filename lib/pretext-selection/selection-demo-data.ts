@@ -10,14 +10,48 @@ export const SAMPLE_PARAGRAPHS = [
   `Try selecting across multiple paragraphs! Click and drag from any position to any other position. The blue highlight should follow your selection across paragraph boundaries. 🎉`,
 ]
 
+export type DemoPreset = { label: string; paragraphs: string[] }
+
+export const DEMO_PRESETS: DemoPreset[] = [
+  {
+    label: 'Mixed (默认)',
+    paragraphs: SAMPLE_PARAGRAPHS,
+  },
+  {
+    label: '中文',
+    paragraphs: [
+      '天地玄黄，宇宙洪荒。日月盈昃，辰宿列张。寒来暑往，秋收冬藏。闰余成岁，律吕调阳。',
+      '云对雨，雪对风，晚照对晴空。来鸿对去燕，宿鸟对鸣虫。三尺剑，六钧弓，岭北对江东。',
+      '春眠不觉晓，处处闻啼鸟。夜来风雨声，花落知多少。',
+    ],
+  },
+  {
+    label: 'Lorem Ipsum',
+    paragraphs: [
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.',
+      'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident.',
+      'Curabitur pretium tincidunt lacus. Nulla gravida orci a odio. Nullam varius, turpis et commodo pharetra, est eros bibendum elit, nec luctus magna felis sollicitudin mauris.',
+    ],
+  },
+  {
+    label: 'Emoji 🎨',
+    paragraphs: [
+      '🚀 Rocket science isn\'t that hard — it\'s basically just "go up and don\'t come down too fast" 🌍💨',
+      '🎵 Do Re Mi Fa Sol La Si 🎶 — 音乐是世界共通的语言。Every culture has rhythm, melody, and the urge to dance 💃🕺',
+      '🧪 H₂O + ☀️ = 🌈. Science is magic that works! From 🔬 to 🔭, we keep looking closer and further.',
+    ],
+  },
+]
+
 export function buildSelectionDemoDocument(
   maxWidth: number,
   font: string,
   lineHeight = 24,
   paragraphGap = 16,
+  paragraphs: string[] = SAMPLE_PARAGRAPHS,
 ): Document {
   return {
-    paragraphs: SAMPLE_PARAGRAPHS.map((text) => ({
+    paragraphs: paragraphs.map((text) => ({
       text,
       font,
       lineHeight,
