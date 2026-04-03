@@ -8,6 +8,12 @@
 - **[expo-text-measure](./expo-text-measure/)** — Expo Module for synchronous native text measurement
 - **[playground](./playground/)** — Demo app (editorial layout, bubbles, masonry, text selection, etc.)
 
+## Screenshots
+
+| Editorial Engine | API Demos | Text Selection |
+|:---:|:---:|:---:|
+| ![Editorial](playground/meta/1.png) | ![API Demos](playground/meta/2.png) | ![Selection](playground/meta/3.png) |
+
 ## Dev
 
 ```bash
