@@ -9,7 +9,7 @@
  * getMeasureContext() picks up the polyfilled OffscreenCanvas.
  */
 
-import "@formatjs/intl-segmenter/polyfill-force";
+import "@formatjs/intl-segmenter/polyfill.js";
 
 // navigator.userAgent polyfill — exists in RN but userAgent is undefined,
 // which crashes pretext's getEngineProfile() on `ua.includes(...)`.
