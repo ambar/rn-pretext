@@ -1,5 +1,12 @@
-import { useEffect, useMemo, useState } from 'react'
-import { StyleSheet, Text, View, useWindowDimensions } from 'react-native'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native'
+import Slider from '@react-native-community/slider'
 import { prepareWithSegments } from 'rn-pretext'
 import { Stack } from 'expo-router'
 
@@ -132,8 +139,6 @@ function stepParticles(particles: Particle[], cols: number, rows: number): Parti
 
 // Persistent field for trail effect
 let prevField: Float32Array[] | null = null
-const TRAIL_DECAY = 0.82
-const PARTICLE_RADIUS = 5
 
 function renderField(
   particles: Particle[],
@@ -141,28 +146,31 @@ function renderField(
   rows: number,
   palette: PaletteEntry[],
   targetCellW: number,
+  trailDecay: number,
+  particleRadius: number,
 ): string[] {
   // Start from decayed previous frame (trail effect)
   const field =
     prevField && prevField.length === rows && prevField[0].length === cols
       ? prevField.map((row) => {
           const next = new Float32Array(cols)
-          for (let c = 0; c < cols; c++) next[c] = row[c] * TRAIL_DECAY
+          for (let c = 0; c < cols; c++) next[c] = row[c] * trailDecay
           return next
         })
       : Array.from({ length: rows }, () => new Float32Array(cols))
 
+  const r = Math.round(particleRadius)
   for (const p of particles) {
     const cx = Math.round(p.x)
     const cy = Math.round(p.y)
-    for (let dy = -PARTICLE_RADIUS; dy <= PARTICLE_RADIUS; dy++) {
-      for (let dx = -PARTICLE_RADIUS; dx <= PARTICLE_RADIUS; dx++) {
-        const r = cy + dy
-        const c = cx + dx
-        if (r < 0 || r >= rows || c < 0 || c >= cols) continue
+    for (let dy = -r; dy <= r; dy++) {
+      for (let dx = -r; dx <= r; dx++) {
+        const row = cy + dy
+        const col = cx + dx
+        if (row < 0 || row >= rows || col < 0 || col >= cols) continue
         const dist = Math.sqrt(dx * dx + dy * dy)
-        if (dist <= PARTICLE_RADIUS) {
-          field[r][c] += (1 - dist / PARTICLE_RADIUS) * 0.45
+        if (dist <= particleRadius) {
+          field[row][col] += (1 - dist / particleRadius) * 0.45
         }
       }
     }
@@ -184,8 +192,49 @@ function renderField(
   })
 }
 
+function SliderRow({
+  label,
+  value,
+  min,
+  max,
+  step,
+  onValueChange,
+}: {
+  label: string
+  value: number
+  min: number
+  max: number
+  step: number
+  onValueChange: (v: number) => void
+}) {
+  return (
+    <View style={styles.sliderRow}>
+      <Text style={styles.sliderLabel}>
+        {label}: {step < 1 ? value.toFixed(2) : value}
+      </Text>
+      <Slider
+        style={styles.slider}
+        minimumValue={min}
+        maximumValue={max}
+        step={step}
+        value={value}
+        onValueChange={onValueChange}
+        minimumTrackTintColor="#c4a35a"
+        maximumTrackTintColor="#333"
+        thumbTintColor="#c4a35a"
+      />
+    </View>
+  )
+}
+
 export default function VariableAsciiDemo() {
   const { width: windowWidth, height: windowHeight } = useWindowDimensions()
+  const [showControls, setShowControls] = useState(false)
+  const [numParticles, setNumParticles] = useState(130)
+  const [trailDecay, setTrailDecay] = useState(0.26)
+  const [particleRadius, setParticleRadius] = useState(4)
+  const [speed, setSpeed] = useState(45)
+  const prevParticleCount = useRef(numParticles)
 
   const { palette, targetCellW } = useMemo(() => {
     const p = buildPalette(FONT)
@@ -193,33 +242,54 @@ export default function VariableAsciiDemo() {
     return { palette: p, targetCellW: targetW / COLS }
   }, [windowWidth])
 
-  const rows = Math.floor((windowHeight - 160) / LINE_HEIGHT)
-  const numParticles = 100
+  const rows = Math.floor((windowHeight - (showControls ? 320 : 160)) / LINE_HEIGHT)
 
   const [particles, setParticles] = useState<Particle[]>(() =>
     Array.from({ length: numParticles }, () => createParticle(COLS, rows)),
   )
 
   useEffect(() => {
+    const prev = prevParticleCount.current
+    if (numParticles === prev) return
+    prevParticleCount.current = numParticles
+    setParticles((ps) => {
+      if (numParticles > prev) {
+        return [...ps, ...Array.from({ length: numParticles - prev }, () => createParticle(COLS, rows))]
+      }
+      return ps.slice(0, numParticles)
+    })
+  }, [numParticles, rows])
+
+  useEffect(() => {
     const id = setInterval(() => {
       setParticles((prev) => stepParticles(prev, COLS, rows))
-    }, 50)
+    }, speed)
     return () => clearInterval(id)
-  }, [rows])
+  }, [rows, speed])
 
   const lines = useMemo(
-    () => renderField(particles, COLS, rows, palette, targetCellW),
-    [particles, rows, palette, targetCellW],
+    () => renderField(particles, COLS, rows, palette, targetCellW, trailDecay, particleRadius),
+    [particles, rows, palette, targetCellW, trailDecay, particleRadius],
   )
 
   return (
     <>
       <Stack.Screen options={{ title: 'Variable Typographic ASCII' }} />
       <View style={styles.container}>
-        <Text style={styles.desc}>
-          Proportional font ({FONT_FAMILY}) — characters selected by brightness AND width via
-          pretext. {numParticles} particles, {COLS}x{rows} grid.
-        </Text>
+        <Pressable onPress={() => setShowControls((v) => !v)}>
+          <Text style={styles.desc}>
+            Proportional font ({FONT_FAMILY}) — characters selected by brightness AND width via
+            pretext. {numParticles} particles, {COLS}x{rows} grid.
+          </Text>
+        </Pressable>
+        {showControls && (
+          <View style={styles.controls}>
+            <SliderRow label="Particles" value={numParticles} min={10} max={200} step={10} onValueChange={setNumParticles} />
+            <SliderRow label="Trail" value={trailDecay} min={0} max={0.98} step={0.02} onValueChange={setTrailDecay} />
+            <SliderRow label="Radius" value={particleRadius} min={2} max={10} step={1} onValueChange={setParticleRadius} />
+            <SliderRow label="Speed (ms)" value={speed} min={16} max={100} step={1} onValueChange={setSpeed} />
+          </View>
+        )}
         <View style={styles.grid}>
           {lines.map((line, i) => (
             <Text key={i} style={styles.asciiLine} numberOfLines={1}>
@@ -235,6 +305,15 @@ export default function VariableAsciiDemo() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0a0a0a', padding: 16 },
   desc: { fontSize: 11, color: '#555', marginBottom: 12, lineHeight: 15 },
+  controls: {
+    marginBottom: 12,
+    padding: 12,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 8,
+  },
+  sliderRow: { marginBottom: 8 },
+  sliderLabel: { fontSize: 11, color: '#888', marginBottom: 2 },
+  slider: { width: '100%', height: 28 },
   grid: { flex: 1, alignItems: 'center' },
   asciiLine: {
     fontFamily: FONT_FAMILY,
