@@ -1,21 +1,21 @@
 import { useMemo, useState } from 'react'
 import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
+import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated'
 import Slider from '@react-native-community/slider'
-import { prepare, prepareWithSegments, layout, walkLineRanges, type PreparedText } from 'rn-pretext'
+import { prepare, layout, type PreparedText } from 'rn-pretext'
 import { Stack } from 'expo-router'
 
 const FONT = '14px System'
 const LH = 20
+const TIMING = { duration: 50 }
 
-const SAMPLE_TEXTS = [
-  'Hello, how are you doing today?',
-  'This is a somewhat longer message that will wrap to multiple lines at narrow widths.',
-  '这是一条测试消息，用来对比 CSS fit-content 和 pretext 的宽度计算。',
-  'Short msg',
-  'The quick brown fox jumps over the lazy dog near the riverbank on a sunny afternoon.',
-  '🚀 Launch sequence initiated! All systems go 🎯 Countdown begins now.',
-  'https://example.com/very/long/path/to/resource?with=query&params=true',
-  'Trans\u00ADatlantic ship\u00ADments of un\u00ADbreak\u00ADable goods arrived.',
+const MESSAGES = [
+  { from: 'them', text: 'Yo did you see the new Pretext library?' },
+  { from: 'me', text: 'yeah! It measures text without the DOM. Pure JavaScript arithmetic' },
+  { from: 'them', text: "That shrinkwrap demo is wild it finds the exact minimum width for multiline text. CSS can't do that." },
+  { from: 'me', text: '성능 최적화가 정말 많이 되었더라고요 🎉' },
+  { from: 'them', text: 'Does it handle soft hyphens and URLs too?' },
+  { from: 'me', text: 'Yep — pretext breaks at punctuation boundaries. layout() is pure arithmetic on cached widths.' },
 ]
 
 function findTightWidth(prepared: PreparedText, maxWidth: number): number {
@@ -28,84 +28,95 @@ function findTightWidth(prepared: PreparedText, maxWidth: number): number {
   return lo
 }
 
+function AnimatedBubble({
+  text,
+  width,
+  isMe,
+}: {
+  text: string
+  width: number
+  isMe: boolean
+}) {
+  const animStyle = useAnimatedStyle(() => ({
+    maxWidth: withTiming(width, TIMING),
+  }))
+  return (
+    <Animated.View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleThem, animStyle]}>
+      <Text style={[styles.bubbleText, isMe && styles.bubbleTextMe]}>{text}</Text>
+    </Animated.View>
+  )
+}
+
 export default function ShrinkwrapShowdownDemo() {
   const { width: windowWidth } = useWindowDimensions()
   const maxW = windowWidth - 32
   const [cssWidth, setCssWidth] = useState(Math.min(300, maxW))
 
-  const rows = useMemo(() => {
-    return SAMPLE_TEXTS.map((text) => {
-      const p = prepare(text, FONT)
-      const ps = prepareWithSegments(text, FONT)
-      const result = layout(p, cssWidth, LH)
+  const data = useMemo(() => {
+    return MESSAGES.map((msg) => {
+      const p = prepare(msg.text, FONT)
       const tightWidth = findTightWidth(p, cssWidth)
-
-      let maxLineW = 0
-      walkLineRanges(ps, cssWidth, (line) => {
-        if (line.width > maxLineW) maxLineW = line.width
-      })
-
-      return {
-        text,
-        lineCount: result.lineCount,
-        cssWidth,
-        tightWidth,
-        savedVsCss: cssWidth - tightWidth,
-      }
+      return { ...msg, prepared: p, cssWidth, tightWidth }
     })
   }, [cssWidth])
 
-  const totalSaved = rows.reduce((s, r) => s + r.savedVsCss, 0)
+  const totalWasted = data.reduce((s, d) => {
+    const { height } = layout(d.prepared, d.cssWidth, LH)
+    const { height: tightH } = layout(d.prepared, d.tightWidth, LH)
+    return s + (d.cssWidth * height - d.tightWidth * tightH)
+  }, 0)
+  const totalSaved = data.reduce((s, d) => s + (d.cssWidth - d.tightWidth), 0)
 
   return (
     <>
       <Stack.Screen options={{ title: 'Shrinkwrap Showdown' }} />
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        <Text style={styles.desc}>
-          Chat bubbles: CSS fit-content width vs pretext shrinkwrap.
-        </Text>
-
-        <Text style={styles.label}>Max width: {cssWidth}px</Text>
-        <Slider
-          style={styles.slider}
-          minimumValue={100}
-          maximumValue={maxW}
-          value={cssWidth}
-          step={1}
-          onValueChange={(v) => setCssWidth(Math.round(v))}
-          minimumTrackTintColor="#007AFF"
-          maximumTrackTintColor="#ddd"
-          thumbTintColor="#007AFF"
-        />
-
-        <View style={styles.savedBadge}>
-          <Text style={styles.savedText}>Total saved: {totalSaved}px across {rows.length} bubbles</Text>
+        <View style={styles.sliderCard}>
+          <Text style={styles.sliderLabel}>Container width:</Text>
+          <Slider
+            style={styles.slider}
+            minimumValue={100}
+            maximumValue={maxW}
+            value={cssWidth}
+            step={1}
+            onValueChange={(v) => setCssWidth(Math.round(v))}
+            minimumTrackTintColor="#007AFF"
+            maximumTrackTintColor="#ddd"
+            thumbTintColor="#007AFF"
+          />
         </View>
 
-        {rows.map((r, i) => (
-          <View key={i} style={styles.pair}>
-            {/* CSS width bubble */}
-            <View style={styles.bubbleRow}>
-              <View style={[styles.bubble, styles.bubbleCss, { maxWidth: r.cssWidth }]}>
-                <Text style={styles.bubbleText}>{r.text}</Text>
-              </View>
-            </View>
-            <Text style={styles.bubbleTag}>
-              CSS {r.cssWidth}px
-            </Text>
-
-            {/* Tight width bubble */}
-            <View style={[styles.bubbleRow, styles.bubbleRowRight]}>
-              <View style={[styles.bubble, styles.bubbleTight, { maxWidth: r.tightWidth }]}>
-                <Text style={[styles.bubbleText, styles.bubbleTextTight]}>{r.text}</Text>
-              </View>
-            </View>
-            <Text style={[styles.bubbleTag, { alignSelf: 'flex-end' }]}>
-              Pretext {r.tightWidth}px{' '}
-              <Text style={styles.savedInline}>-{r.savedVsCss}px</Text>
-            </Text>
+        {/* CSS fit-content section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>CSS fit-content</Text>
+          <Text style={styles.sectionDesc}>
+            Uses <Text style={styles.code}>width: fit-content; max-width: 80%</Text>. The browser wraps the text, then sizes the bubble to the longest wrapped line. Shorter lines leave empty bubble area behind.
+          </Text>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>Wasted pixels: {totalWasted.toLocaleString()}</Text>
           </View>
-        ))}
+          <View style={styles.chatContainer}>
+            {data.map((d, i) => (
+              <AnimatedBubble key={i} text={d.text} width={d.cssWidth} isMe={d.from === 'me'} />
+            ))}
+          </View>
+        </View>
+
+        {/* Pretext shrinkwrap section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Pretext shrinkwrap</Text>
+          <Text style={styles.sectionDesc}>
+            Uses <Text style={styles.code}>layout()</Text> with binary search to find the minimum width that preserves line count. Every bubble is exactly as wide as its longest line — zero wasted space.
+          </Text>
+          <View style={[styles.badge, styles.badgeGreen]}>
+            <Text style={styles.badgeText}>Saved: {totalSaved}px total</Text>
+          </View>
+          <View style={styles.chatContainer}>
+            {data.map((d, i) => (
+              <AnimatedBubble key={i} text={d.text} width={d.tightWidth} isMe={d.from === 'me'} />
+            ))}
+          </View>
+        </View>
       </ScrollView>
     </>
   )
@@ -114,37 +125,56 @@ export default function ShrinkwrapShowdownDemo() {
 const styles = StyleSheet.create({
   scroll: { flex: 1, backgroundColor: '#f2f2f7' },
   content: { padding: 16, paddingBottom: 60 },
-  desc: { fontSize: 13, color: '#888', marginBottom: 16, lineHeight: 18 },
-  label: { fontSize: 13, fontWeight: '600', color: '#333', marginBottom: 4 },
-  slider: { width: '100%', height: 36, marginBottom: 12 },
-  savedBadge: {
-    alignSelf: 'center',
-    backgroundColor: '#059669',
+  sliderCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
     borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    marginBottom: 20,
+    padding: 12,
+    marginBottom: 16,
   },
-  savedText: { fontSize: 12, fontWeight: '600', color: '#fff' },
-  pair: { marginBottom: 20 },
-  bubbleRow: { flexDirection: 'row' },
-  bubbleRowRight: { justifyContent: 'flex-end' },
+  sliderLabel: { fontSize: 13, fontFamily: 'monospace', color: '#666', marginRight: 8 },
+  slider: { flex: 1, height: 36 },
+  section: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#000', marginBottom: 8 },
+  sectionDesc: { fontSize: 14, color: '#666', lineHeight: 20, marginBottom: 12 },
+  code: { fontFamily: 'monospace', fontSize: 12, color: '#444', backgroundColor: '#f0f0f0' },
+  badge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#f5f0e8',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginBottom: 16,
+  },
+  badgeGreen: { backgroundColor: '#ecfdf5' },
+  badgeText: { fontSize: 13, fontFamily: 'monospace', fontWeight: '600', color: '#333' },
+  chatContainer: {
+    backgroundColor: '#1c1c1e',
+    borderRadius: 12,
+    padding: 12,
+    gap: 8,
+  },
   bubble: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     borderRadius: 16,
-    marginBottom: 2,
   },
-  bubbleCss: {
-    backgroundColor: '#e5e5ea',
+  bubbleThem: {
+    backgroundColor: '#3a3a3c',
     borderBottomLeftRadius: 4,
+    alignSelf: 'flex-start',
   },
-  bubbleTight: {
+  bubbleMe: {
     backgroundColor: '#007AFF',
     borderBottomRightRadius: 4,
+    alignSelf: 'flex-end',
   },
-  bubbleText: { fontSize: 14, lineHeight: 20, color: '#000' },
-  bubbleTextTight: { color: '#fff' },
-  bubbleTag: { fontSize: 10, color: '#999', marginBottom: 6 },
-  savedInline: { color: '#059669', fontWeight: '600' },
+  bubbleText: { fontSize: 14, lineHeight: 20, color: '#fff' },
+  bubbleTextMe: { color: '#fff' },
 })
