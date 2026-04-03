@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import {
-  LayoutAnimation,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -8,6 +7,12 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native'
+import Animated, {
+  useAnimatedStyle,
+  useDerivedValue,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated'
 import { useRouter } from 'expo-router'
 import {
   prepare,
@@ -109,6 +114,50 @@ const ACCORDION_ITEMS = [
   },
 ]
 
+const TIMING_CONFIG = { duration: 300, easing: Easing.bezier(0.4, 0, 0.2, 1) }
+
+function AccordionItem({
+  title,
+  text,
+  height,
+  lineCount,
+  isOpen,
+  onPress,
+}: {
+  title: string
+  text: string
+  height: number
+  lineCount: number
+  isOpen: boolean
+  onPress: () => void
+}) {
+  const progress = useDerivedValue(() => withTiming(isOpen ? 1 : 0, TIMING_CONFIG))
+  const bodyStyle = useAnimatedStyle(() => ({
+    height: progress.value * height,
+    opacity: progress.value,
+  }))
+  const arrowStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${progress.value * 45}deg` }],
+  }))
+
+  return (
+    <View style={styles.accordionItem}>
+      <Pressable onPress={onPress} style={styles.accordionHeader}>
+        <Text style={styles.accordionTitle}>{title}</Text>
+        <Animated.Text style={[styles.accordionArrow, arrowStyle]}>+</Animated.Text>
+      </Pressable>
+      <Animated.View style={[{ overflow: 'hidden' }, bodyStyle]}>
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
+          <Text style={styles.accordionBody}>{text}</Text>
+        </View>
+      </Animated.View>
+      <Text style={styles.meta}>
+        {lineCount} lines, {height - 16}px
+      </Text>
+    </View>
+  )
+}
+
 function AccordionDemo() {
   const { width: windowWidth } = useWindowDimensions()
   const contentWidth = windowWidth - 48 - 32
@@ -125,29 +174,17 @@ function AccordionDemo() {
 
   return (
     <View style={styles.card}>
-      {ACCORDION_ITEMS.map((item, i) => {
-        const isOpen = openIndex === i
-        return (
-          <View key={i} style={styles.accordionItem}>
-            <Pressable
-              onPress={() => {
-                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
-                setOpenIndex(isOpen ? null : i)
-              }}
-              style={styles.accordionHeader}
-            >
-              <Text style={styles.accordionTitle}>{item.title}</Text>
-              <Text style={styles.accordionArrow}>{isOpen ? '−' : '+'}</Text>
-            </Pressable>
-            <View style={{ height: isOpen ? heights[i] : 0, overflow: 'hidden' }}>
-              <Text style={styles.accordionBody}>{item.text}</Text>
-            </View>
-            <Text style={styles.meta}>
-              {layout(prepared[i], contentWidth, LH).lineCount} lines, {heights[i] - 16}px
-            </Text>
-          </View>
-        )
-      })}
+      {ACCORDION_ITEMS.map((item, i) => (
+        <AccordionItem
+          key={i}
+          title={item.title}
+          text={item.text}
+          height={heights[i]}
+          lineCount={layout(prepared[i], contentWidth, LH).lineCount}
+          isOpen={openIndex === i}
+          onPress={() => setOpenIndex(openIndex === i ? null : i)}
+        />
+      ))}
     </View>
   )
 }
