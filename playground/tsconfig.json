@@ -1,0 +1,26 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "baseUrl": ".",
+    "paths": {
+      "rn-pretext": ["../rn-pretext/src/index.ts"],
+      "expo-text-measure": ["../expo-text-measure/index.ts"]
+    },
+    "skipLibCheck": true,
+    "noImplicitAny": false
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "../rn-pretext/**/*.ts",
+    "../expo-text-measure/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/test",
+    "**/dist",
+    "**/types",
+    "**/__tests__"
+  ]
+}

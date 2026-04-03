@@ -1,0 +1,9 @@
+{
+  "platforms": ["ios", "android"],
+  "ios": {
+    "modules": ["NativeTextMeasureModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.nativetextmeasure.NativeTextMeasureModule"]
+  }
+}

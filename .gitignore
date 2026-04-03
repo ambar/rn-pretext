@@ -33,6 +33,6 @@ tsconfig.tsbuildinfo
 
 expo-env.d.ts
 
-# generated code
-/ios
-/android
+# generated native projects
+playground/ios
+playground/android

@@ -1,0 +1,15 @@
+{
+  "name": "expo-text-measure",
+  "version": "0.0.1",
+  "description": "Synchronous native text measurement for React Native (CoreText / Android Paint)",
+  "repository": "ambar/rn-pretext",
+  "license": "MIT",
+  "main": "index.ts",
+  "types": "index.ts",
+  "files": [
+    "index.ts",
+    "ios",
+    "android",
+    "expo-module.config.json"
+  ]
+}
