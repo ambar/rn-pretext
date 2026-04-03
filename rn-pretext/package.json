@@ -12,7 +12,7 @@
   "dependencies": {
     "@chenglou/pretext": "^0.0.4",
     "@formatjs/intl-segmenter": "^12.2.1",
-    "expo-text-measure": "workspace:*"
+    "expo-text-measure": "^0.0.1"
   },
   "peerDependencies": {
     "expo-modules-core": "*"
