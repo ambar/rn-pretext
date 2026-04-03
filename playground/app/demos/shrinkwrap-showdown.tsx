@@ -49,16 +49,12 @@ export default function ShrinkwrapShowdownDemo() {
         text,
         lineCount: result.lineCount,
         cssWidth,
-        maxLineW: Math.ceil(maxLineW),
         tightWidth,
-        wastedCss: Math.ceil(cssWidth - maxLineW),
-        wastedTight: Math.ceil(tightWidth - maxLineW) || 0,
         savedVsCss: cssWidth - tightWidth,
       }
     })
   }, [cssWidth])
 
-  const totalWastedCss = rows.reduce((s, r) => s + Math.max(0, r.wastedCss), 0)
   const totalSaved = rows.reduce((s, r) => s + r.savedVsCss, 0)
 
   return (
@@ -66,12 +62,10 @@ export default function ShrinkwrapShowdownDemo() {
       <Stack.Screen options={{ title: 'Shrinkwrap Showdown' }} />
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         <Text style={styles.desc}>
-          CSS fit-content vs pretext — finding the exact tightest width for multiline text.
-          Pretext uses binary search on layout() to find the minimum container width that
-          preserves line count.
+          Chat bubbles: CSS fit-content width vs pretext shrinkwrap.
         </Text>
 
-        <Text style={styles.label}>Container width: {cssWidth}px</Text>
+        <Text style={styles.label}>Max width: {cssWidth}px</Text>
         <Slider
           style={styles.slider}
           minimumValue={100}
@@ -84,37 +78,31 @@ export default function ShrinkwrapShowdownDemo() {
           thumbTintColor="#007AFF"
         />
 
-        <View style={styles.summaryRow}>
-          <View style={styles.summaryBox}>
-            <Text style={styles.summaryLabel}>Total wasted (CSS)</Text>
-            <Text style={[styles.summaryVal, { color: '#dc2626' }]}>{totalWastedCss}px</Text>
-          </View>
-          <View style={styles.summaryBox}>
-            <Text style={styles.summaryLabel}>Total saved (tight)</Text>
-            <Text style={[styles.summaryVal, { color: '#059669' }]}>{totalSaved}px</Text>
-          </View>
+        <View style={styles.savedBadge}>
+          <Text style={styles.savedText}>Total saved: {totalSaved}px across {rows.length} bubbles</Text>
         </View>
 
         {rows.map((r, i) => (
-          <View key={i} style={styles.itemCard}>
-            <Text style={styles.itemText} numberOfLines={2}>{r.text}</Text>
-            <View style={styles.barRow}>
-              <View style={styles.barLabels}>
-                <Text style={styles.barLabel}>CSS ({cssWidth}px)</Text>
-                <Text style={styles.barLabel}>Tight ({r.tightWidth}px)</Text>
-              </View>
-              <View style={styles.bars}>
-                <View style={styles.barTrack}>
-                  <View style={[styles.barFill, { width: `${(r.maxLineW / cssWidth) * 100}%` }]} />
-                  <View style={[styles.barWaste, { width: `${(r.wastedCss / cssWidth) * 100}%` }]} />
-                </View>
-                <View style={styles.barTrack}>
-                  <View style={[styles.barFill, styles.barFillTight, { width: `${(r.maxLineW / r.tightWidth) * 100}%` }]} />
-                </View>
+          <View key={i} style={styles.pair}>
+            {/* CSS width bubble */}
+            <View style={styles.bubbleRow}>
+              <View style={[styles.bubble, styles.bubbleCss, { maxWidth: r.cssWidth }]}>
+                <Text style={styles.bubbleText}>{r.text}</Text>
               </View>
             </View>
-            <Text style={styles.itemMeta}>
-              {r.lineCount} lines | max line: {r.maxLineW}px | saved: {r.savedVsCss}px
+            <Text style={styles.bubbleTag}>
+              CSS {r.cssWidth}px
+            </Text>
+
+            {/* Tight width bubble */}
+            <View style={[styles.bubbleRow, styles.bubbleRowRight]}>
+              <View style={[styles.bubble, styles.bubbleTight, { maxWidth: r.tightWidth }]}>
+                <Text style={[styles.bubbleText, styles.bubbleTextTight]}>{r.text}</Text>
+              </View>
+            </View>
+            <Text style={[styles.bubbleTag, { alignSelf: 'flex-end' }]}>
+              Pretext {r.tightWidth}px{' '}
+              <Text style={styles.savedInline}>-{r.savedVsCss}px</Text>
             </Text>
           </View>
         ))}
@@ -124,24 +112,39 @@ export default function ShrinkwrapShowdownDemo() {
 }
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: '#fff' },
+  scroll: { flex: 1, backgroundColor: '#f2f2f7' },
   content: { padding: 16, paddingBottom: 60 },
-  desc: { fontSize: 13, color: '#666', marginBottom: 16, lineHeight: 18 },
+  desc: { fontSize: 13, color: '#888', marginBottom: 16, lineHeight: 18 },
   label: { fontSize: 13, fontWeight: '600', color: '#333', marginBottom: 4 },
-  slider: { width: '100%', height: 36, marginBottom: 16 },
-  summaryRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
-  summaryBox: { flex: 1, backgroundColor: '#f8f8f8', borderRadius: 8, padding: 12, alignItems: 'center' },
-  summaryLabel: { fontSize: 11, color: '#888' },
-  summaryVal: { fontSize: 22, fontWeight: '700', marginTop: 4 },
-  itemCard: { backgroundColor: '#fafafa', borderRadius: 8, borderWidth: 1, borderColor: '#e5e5e5', padding: 12, marginBottom: 12 },
-  itemText: { fontSize: 13, color: '#444', marginBottom: 8, lineHeight: 18 },
-  barRow: { flexDirection: 'row', gap: 8, marginBottom: 6 },
-  barLabels: { width: 80, gap: 6 },
-  barLabel: { fontSize: 10, color: '#888', height: 12, lineHeight: 12 },
-  bars: { flex: 1, gap: 6 },
-  barTrack: { height: 12, backgroundColor: '#f0f0f0', borderRadius: 3, flexDirection: 'row', overflow: 'hidden' },
-  barFill: { height: '100%', backgroundColor: '#007AFF', borderRadius: 3 },
-  barFillTight: { backgroundColor: '#059669' },
-  barWaste: { height: '100%', backgroundColor: '#fecaca' },
-  itemMeta: { fontSize: 10, color: '#aaa' },
+  slider: { width: '100%', height: 36, marginBottom: 12 },
+  savedBadge: {
+    alignSelf: 'center',
+    backgroundColor: '#059669',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    marginBottom: 20,
+  },
+  savedText: { fontSize: 12, fontWeight: '600', color: '#fff' },
+  pair: { marginBottom: 20 },
+  bubbleRow: { flexDirection: 'row' },
+  bubbleRowRight: { justifyContent: 'flex-end' },
+  bubble: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    marginBottom: 2,
+  },
+  bubbleCss: {
+    backgroundColor: '#e5e5ea',
+    borderBottomLeftRadius: 4,
+  },
+  bubbleTight: {
+    backgroundColor: '#007AFF',
+    borderBottomRightRadius: 4,
+  },
+  bubbleText: { fontSize: 14, lineHeight: 20, color: '#000' },
+  bubbleTextTight: { color: '#fff' },
+  bubbleTag: { fontSize: 10, color: '#999', marginBottom: 6 },
+  savedInline: { color: '#059669', fontWeight: '600' },
 })
