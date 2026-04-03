@@ -69,36 +69,71 @@ function findBest(palette: PaletteEntry[], targetB: number, targetCellW: number)
   return best
 }
 
-// Particle system
-type Particle = { x: number; y: number; vx: number; vy: number; life: number }
+// Particle system with dual attractors
+type Particle = { x: number; y: number; vx: number; vy: number }
 
 function createParticle(cols: number, rows: number): Particle {
+  const angle = Math.random() * Math.PI * 2
+  const r = Math.random() * 10 + 5
   return {
-    x: Math.random() * cols,
-    y: Math.random() * rows,
+    x: cols / 2 + Math.cos(angle) * r,
+    y: rows / 2 + Math.sin(angle) * r,
     vx: (Math.random() - 0.5) * 0.8,
     vy: (Math.random() - 0.5) * 0.8,
-    life: 0.5 + Math.random() * 0.5,
   }
 }
 
+let tick = 0
+
 function stepParticles(particles: Particle[], cols: number, rows: number): Particle[] {
+  tick++
+  const t = tick * 0.05
+  // Two orbiting attractors
+  const a1x = Math.cos(t * 0.7) * cols * 0.25 + cols / 2
+  const a1y = Math.sin(t * 1.1) * rows * 0.3 + rows / 2
+  const a2x = Math.cos(t * 1.3 + Math.PI) * cols * 0.2 + cols / 2
+  const a2y = Math.sin(t * 0.9 + Math.PI) * rows * 0.25 + rows / 2
+
   return particles.map((p) => {
-    let { x, y, vx, vy, life } = p
+    let { x, y, vx, vy } = p
+
+    // Attract to nearest attractor
+    const d1x = a1x - x, d1y = a1y - y
+    const d2x = a2x - x, d2y = a2y - y
+    const dist1 = d1x * d1x + d1y * d1y
+    const dist2 = d2x * d2x + d2y * d2y
+    const ax = dist1 < dist2 ? d1x : d2x
+    const ay = dist1 < dist2 ? d1y : d2y
+    const dist = Math.sqrt(Math.min(dist1, dist2)) + 1
+
+    vx += (ax / dist) * 0.12
+    vy += (ay / dist) * 0.12
+
+    // Random jitter
+    vx += (Math.random() - 0.5) * 0.25
+    vy += (Math.random() - 0.5) * 0.25
+
+    // Damping
+    vx *= 0.97
+    vy *= 0.97
+
     x += vx
     y += vy
-    life -= 0.008
 
-    // Bounce off edges
-    if (x < 0 || x >= cols) vx = -vx
-    if (y < 0 || y >= rows) vy = -vy
-    x = Math.max(0, Math.min(cols - 1, x))
-    y = Math.max(0, Math.min(rows - 1, y))
+    // Wrap around edges
+    if (x < -2) x += cols + 4
+    if (x > cols + 2) x -= cols + 4
+    if (y < -2) y += rows + 4
+    if (y > rows + 2) y -= rows + 4
 
-    if (life <= 0) return createParticle(cols, rows)
-    return { x, y, vx, vy, life }
+    return { x, y, vx, vy }
   })
 }
+
+// Persistent field for trail effect
+let prevField: Float32Array[] | null = null
+const TRAIL_DECAY = 0.82
+const PARTICLE_RADIUS = 5
 
 function renderField(
   particles: Particle[],
@@ -107,24 +142,33 @@ function renderField(
   palette: PaletteEntry[],
   targetCellW: number,
 ): string[] {
-  const field = Array.from({ length: rows }, () => new Float32Array(cols))
+  // Start from decayed previous frame (trail effect)
+  const field =
+    prevField && prevField.length === rows && prevField[0].length === cols
+      ? prevField.map((row) => {
+          const next = new Float32Array(cols)
+          for (let c = 0; c < cols; c++) next[c] = row[c] * TRAIL_DECAY
+          return next
+        })
+      : Array.from({ length: rows }, () => new Float32Array(cols))
 
   for (const p of particles) {
-    const radius = 3
     const cx = Math.round(p.x)
     const cy = Math.round(p.y)
-    for (let dy = -radius; dy <= radius; dy++) {
-      for (let dx = -radius; dx <= radius; dx++) {
+    for (let dy = -PARTICLE_RADIUS; dy <= PARTICLE_RADIUS; dy++) {
+      for (let dx = -PARTICLE_RADIUS; dx <= PARTICLE_RADIUS; dx++) {
         const r = cy + dy
         const c = cx + dx
         if (r < 0 || r >= rows || c < 0 || c >= cols) continue
         const dist = Math.sqrt(dx * dx + dy * dy)
-        if (dist <= radius) {
-          field[r][c] += p.life * (1 - dist / radius) * 0.6
+        if (dist <= PARTICLE_RADIUS) {
+          field[r][c] += (1 - dist / PARTICLE_RADIUS) * 0.45
         }
       }
     }
   }
+
+  prevField = field
 
   return field.map((row) => {
     let line = ''
