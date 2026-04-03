@@ -1,6 +1,6 @@
 {
   "name": "rn-pretext",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "@chenglou/pretext for React Native with native text measurement polyfill",
   "repository": "ambar/rn-pretext",
   "license": "MIT",
