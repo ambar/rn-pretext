@@ -7,7 +7,8 @@ export default function RootLayout() {
       <Stack>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="tabs" options={{ headerShown: false }} />
-        <Stack.Screen name="demos" options={{ headerShown: false }} />
+        <Stack.Screen name="ports" options={{ headerShown: false }} />
+        <Stack.Screen name="examples" options={{ headerShown: false }} />
       </Stack>
     </GestureHandlerRootView>
   )
