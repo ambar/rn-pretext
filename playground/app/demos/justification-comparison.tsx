@@ -31,13 +31,7 @@ export default function JustificationComparisonDemo() {
   return (
     <>
       <Stack.Screen options={{ title: 'Justification Compared' }} />
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        <Text style={styles.desc}>
-          Side-by-side: pretext greedy layout vs RN native Text.
-          Red bars show wasted space at line ends in greedy mode.
-          Compare where each engine chooses to break.
-        </Text>
-
+      <View style={styles.sliderCard}>
         <Text style={styles.label}>Width: {width}px</Text>
         <Slider
           style={styles.slider}
@@ -50,6 +44,13 @@ export default function JustificationComparisonDemo() {
           maximumTrackTintColor="#ddd"
           thumbTintColor="#007AFF"
         />
+      </View>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+        <Text style={styles.desc}>
+          Side-by-side: pretext greedy layout vs RN native Text.
+          Red bars show wasted space at line ends in greedy mode.
+          Compare where each engine chooses to break.
+        </Text>
 
         {PARAGRAPHS.map((para, pi) => (
           <View key={pi} style={styles.paraSection}>
@@ -107,8 +108,9 @@ const styles = StyleSheet.create({
   scroll: { flex: 1, backgroundColor: '#fff' },
   content: { padding: 16, paddingBottom: 60 },
   desc: { fontSize: 13, color: '#666', marginBottom: 16, lineHeight: 18 },
+  sliderCard: { paddingHorizontal: 16, paddingTop: 16, backgroundColor: '#fff' },
   label: { fontSize: 13, fontWeight: '600', color: '#333', marginBottom: 4 },
-  slider: { width: '100%', height: 36, marginBottom: 20 },
+  slider: { width: '100%', height: 36 },
   paraSection: { marginBottom: 24 },
   columns: { gap: 12 },
   colLabel: { fontSize: 11, fontWeight: '600', color: '#888', marginBottom: 4 },

@@ -70,22 +70,21 @@ export default function ShrinkwrapShowdownDemo() {
   return (
     <>
       <Stack.Screen options={{ title: 'Shrinkwrap Showdown' }} />
+      <View style={styles.sliderCard}>
+        <Text style={styles.sliderLabel}>Container width:</Text>
+        <Slider
+          style={styles.slider}
+          minimumValue={100}
+          maximumValue={maxW}
+          value={cssWidth}
+          step={1}
+          onValueChange={(v) => setCssWidth(Math.round(v))}
+          minimumTrackTintColor="#007AFF"
+          maximumTrackTintColor="#ddd"
+          thumbTintColor="#007AFF"
+        />
+      </View>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        <View style={styles.sliderCard}>
-          <Text style={styles.sliderLabel}>Container width:</Text>
-          <Slider
-            style={styles.slider}
-            minimumValue={100}
-            maximumValue={maxW}
-            value={cssWidth}
-            step={1}
-            onValueChange={(v) => setCssWidth(Math.round(v))}
-            minimumTrackTintColor="#007AFF"
-            maximumTrackTintColor="#ddd"
-            thumbTintColor="#007AFF"
-          />
-        </View>
-
         {/* CSS fit-content section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>CSS fit-content</Text>
@@ -131,7 +130,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 12,
-    marginBottom: 16,
+    marginHorizontal: 16,
+    marginTop: 16,
   },
   sliderLabel: { fontSize: 13, fontFamily: 'monospace', color: '#666', marginRight: 8 },
   slider: { flex: 1, height: 36 },
