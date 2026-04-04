@@ -4,24 +4,4 @@
  */
 import './polyfill'
 
-export {
-  prepare,
-  prepareWithSegments,
-  layout,
-  layoutWithLines,
-  layoutNextLine,
-  walkLineRanges,
-  clearCache,
-  setLocale,
-} from '@chenglou/pretext'
-
-export type {
-  PreparedText,
-  PreparedTextWithSegments,
-  LayoutResult,
-  LayoutLine,
-  LayoutLineRange,
-  LayoutLinesResult,
-  LayoutCursor,
-  PrepareOptions,
-} from '@chenglou/pretext'
+export * from '@chenglou/pretext'
