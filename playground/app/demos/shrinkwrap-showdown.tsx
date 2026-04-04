@@ -2,12 +2,15 @@ import { useMemo, useState } from 'react'
 import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated'
 import Slider from '@react-native-community/slider'
-import { prepare, layout, type PreparedText } from 'rn-pretext'
+import { prepareWithSegments, layout, walkLineRanges, type PreparedTextWithSegments } from 'rn-pretext'
 import { Stack } from 'expo-router'
 
 const FONT = '14px System'
 const LH = 20
 const TIMING = { duration: 50 }
+const PADDING_H = 14
+const PADDING_V = 10
+const BUBBLE_MAX_RATIO = 0.8
 
 const MESSAGES = [
   { from: 'them', text: 'Yo did you see the new Pretext library?' },
@@ -18,14 +21,22 @@ const MESSAGES = [
   { from: 'me', text: 'Yep — pretext breaks at punctuation boundaries. layout() is pure arithmetic on cached widths.' },
 ]
 
-function findTightWidth(prepared: PreparedText, maxWidth: number): number {
-  const target = layout(prepared, maxWidth, LH).lineCount
-  let lo = 1, hi = Math.ceil(maxWidth)
+function collectWrapMetrics(prepared: PreparedTextWithSegments, maxWidth: number) {
+  let maxLineWidth = 0
+  const lineCount = walkLineRanges(prepared, maxWidth, (line) => {
+    if (line.width > maxLineWidth) maxLineWidth = line.width
+  })
+  return { lineCount, height: lineCount * LH, maxLineWidth }
+}
+
+function findTightWrapMetrics(prepared: PreparedTextWithSegments, maxWidth: number) {
+  const initial = collectWrapMetrics(prepared, maxWidth)
+  let lo = 1, hi = Math.max(1, Math.ceil(maxWidth))
   while (lo < hi) {
     const mid = (lo + hi) >> 1
-    layout(prepared, mid, LH).lineCount <= target ? (hi = mid) : (lo = mid + 1)
+    layout(prepared, mid, LH).lineCount <= initial.lineCount ? (hi = mid) : (lo = mid + 1)
   }
-  return lo
+  return collectWrapMetrics(prepared, lo)
 }
 
 function AnimatedBubble({
@@ -52,20 +63,23 @@ export default function ShrinkwrapShowdownDemo() {
   const maxW = windowWidth - 32
   const [cssWidth, setCssWidth] = useState(Math.min(300, maxW))
 
-  const data = useMemo(() => {
-    return MESSAGES.map((msg) => {
-      const p = prepare(msg.text, FONT)
-      const tightWidth = findTightWidth(p, cssWidth)
-      return { ...msg, prepared: p, cssWidth, tightWidth }
-    })
-  }, [cssWidth])
+  const bubbleMaxWidth = Math.floor(cssWidth * BUBBLE_MAX_RATIO)
 
-  const totalWasted = data.reduce((s, d) => {
-    const { height } = layout(d.prepared, d.cssWidth, LH)
-    const { height: tightH } = layout(d.prepared, d.tightWidth, LH)
-    return s + (d.cssWidth * height - d.tightWidth * tightH)
-  }, 0)
-  const totalSaved = data.reduce((s, d) => s + (d.cssWidth - d.tightWidth), 0)
+  const data = useMemo(() => {
+    const contentMaxWidth = bubbleMaxWidth - PADDING_H * 2
+    return MESSAGES.map((msg) => {
+      const p = prepareWithSegments(msg.text, FONT)
+      const cssMetrics = collectWrapMetrics(p, contentMaxWidth)
+      const tightMetrics = findTightWrapMetrics(p, contentMaxWidth)
+      const fitWidth = Math.ceil(cssMetrics.maxLineWidth) + PADDING_H * 2
+      const tightWidth = Math.ceil(tightMetrics.maxLineWidth) + PADDING_H * 2
+      const cssHeight = cssMetrics.height + PADDING_V * 2
+      return { ...msg, fitWidth, tightWidth, cssHeight }
+    })
+  }, [bubbleMaxWidth])
+
+  const totalWasted = data.reduce((s, d) => s + Math.max(0, d.fitWidth - d.tightWidth) * d.cssHeight, 0)
+  const totalSaved = data.reduce((s, d) => s + (d.fitWidth - d.tightWidth), 0)
 
   return (
     <>
@@ -85,35 +99,37 @@ export default function ShrinkwrapShowdownDemo() {
         />
       </View>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        {/* CSS fit-content section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>CSS fit-content</Text>
-          <Text style={styles.sectionDesc}>
-            Uses <Text style={styles.code}>width: fit-content; max-width: 80%</Text>. The browser wraps the text, then sizes the bubble to the longest wrapped line. Shorter lines leave empty bubble area behind.
-          </Text>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>Wasted pixels: {totalWasted.toLocaleString()}</Text>
+        <View style={styles.grid}>
+          {/* CSS fit-content section */}
+          <View style={[styles.section, { flexBasis: cssWidth + 32, flexGrow: 1 }]}>
+            <Text style={styles.sectionTitle}>CSS fit-content</Text>
+            <Text style={styles.sectionDesc}>
+              Uses <Text style={styles.code}>width: fit-content; max-width: 80%</Text>. The browser wraps the text, then sizes the bubble to the longest wrapped line. Shorter lines leave empty bubble area behind.
+            </Text>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>Wasted pixels: {totalWasted.toLocaleString()}</Text>
+            </View>
+            <View style={[styles.chatContainer, { width: cssWidth }]}>
+              {data.map((d, i) => (
+                <AnimatedBubble key={i} text={d.text} width={bubbleMaxWidth} isMe={d.from === 'me'} />
+              ))}
+            </View>
           </View>
-          <View style={styles.chatContainer}>
-            {data.map((d, i) => (
-              <AnimatedBubble key={i} text={d.text} width={d.cssWidth} isMe={d.from === 'me'} />
-            ))}
-          </View>
-        </View>
 
-        {/* Pretext shrinkwrap section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Pretext shrinkwrap</Text>
-          <Text style={styles.sectionDesc}>
-            Uses <Text style={styles.code}>layout()</Text> with binary search to find the minimum width that preserves line count. Every bubble is exactly as wide as its longest line — zero wasted space.
-          </Text>
-          <View style={[styles.badge, styles.badgeGreen]}>
-            <Text style={styles.badgeText}>Saved: {totalSaved}px total</Text>
-          </View>
-          <View style={styles.chatContainer}>
-            {data.map((d, i) => (
-              <AnimatedBubble key={i} text={d.text} width={d.tightWidth} isMe={d.from === 'me'} />
-            ))}
+          {/* Pretext shrinkwrap section */}
+          <View style={[styles.section, { flexBasis: cssWidth + 32, flexGrow: 1 }]}>
+            <Text style={styles.sectionTitle}>Pretext shrinkwrap</Text>
+            <Text style={styles.sectionDesc}>
+              Uses <Text style={styles.code}>walkLineRanges()</Text> to binary-search the tightest width that produces the same line count. Zero wasted pixels.
+            </Text>
+            <View style={[styles.badge, styles.badgeGreen]}>
+              <Text style={styles.badgeText}>Saved: {totalSaved}px total</Text>
+            </View>
+            <View style={[styles.chatContainer, { width: cssWidth }]}>
+              {data.map((d, i) => (
+                <AnimatedBubble key={i} text={d.text} width={d.tightWidth} isMe={d.from === 'me'} />
+              ))}
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -135,11 +151,15 @@ const styles = StyleSheet.create({
   },
   sliderLabel: { fontSize: 13, fontFamily: 'monospace', color: '#666', marginRight: 8 },
   slider: { flex: 1, height: 36 },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+  },
   section: {
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 16,
   },
   sectionTitle: { fontSize: 18, fontWeight: '700', color: '#000', marginBottom: 8 },
   sectionDesc: { fontSize: 14, color: '#666', lineHeight: 20, marginBottom: 12 },
