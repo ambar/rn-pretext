@@ -1,5 +1,11 @@
 # rn-pretext
 
+## 0.0.4
+
+### Patch Changes
+
+- [`e6f7d36`](https://github.com/ambar/rn-pretext/commit/e6f7d36acd3de3a82606eebed718cb88a971be5b) Thanks [@ambar](https://github.com/ambar)! - Simplify re-exports with `export *` from @chenglou/pretext
+
 ## 0.0.3
 
 ### Patch Changes
