@@ -121,6 +121,13 @@ const EXAMPLE_LINKS = [
     tagColor: '#5856D6',
     desc: 'Characters morph smoothly between two container widths during reflow.',
   },
+  {
+    href: '/examples/text-truncation',
+    title: 'Text Truncation',
+    tag: 'Layout',
+    tagColor: '#FF9500',
+    desc: 'Truncate text to N lines with an expand button that only appears when truly truncated.',
+  },
 ] as const
 
 function DemoList() {
