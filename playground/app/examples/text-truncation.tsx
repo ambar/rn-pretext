@@ -82,22 +82,21 @@ function TruncatedCard({
         </View>
       </View>
 
-      <View style={[styles.textBox, { height: displayHeight }]}>
+      <View style={[styles.textBox, { height: expanded ? undefined : truncatedHeight }]}>
         <Text style={styles.textContent} numberOfLines={expanded ? undefined : maxLines}>
           {text}
+          {isTruncated && (
+            <Text
+              style={styles.expandInline}
+              onPress={() => setExpanded((e) => !e)}
+            >
+              {expanded
+                ? '  Collapse'
+                : `  ...Expand (${lineCount - maxLines} more lines)`}
+            </Text>
+          )}
         </Text>
       </View>
-
-      {isTruncated && (
-        <Pressable
-          style={styles.expandBtn}
-          onPress={() => setExpanded((e) => !e)}
-        >
-          <Text style={styles.expandText}>
-            {expanded ? 'Collapse' : `Expand (${lineCount - maxLines} more lines)`}
-          </Text>
-        </Pressable>
-      )}
 
       <View style={styles.metaRow}>
         <Text style={styles.metaText}>
@@ -220,15 +219,7 @@ const styles = StyleSheet.create({
   textBox: { overflow: 'hidden' },
   textContent: { fontSize: 14, lineHeight: LH, color: '#444' },
 
-  expandBtn: {
-    marginTop: 8,
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: '#007AFF10',
-    borderRadius: 6,
-  },
-  expandText: { fontSize: 13, fontWeight: '600', color: '#007AFF' },
+  expandInline: { fontSize: 13, fontWeight: '600', color: '#007AFF' },
 
   metaRow: { marginTop: 8 },
   metaText: { fontSize: 11, color: '#999' },
