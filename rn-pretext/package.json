@@ -1,6 +1,6 @@
 {
   "name": "rn-pretext",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "@chenglou/pretext for React Native with native text measurement polyfill",
   "repository": "ambar/rn-pretext",
   "license": "MIT",
@@ -12,7 +12,7 @@
   "dependencies": {
     "@chenglou/pretext": "^0.0.4",
     "@formatjs/intl-segmenter": "^12.2.1",
-    "expo-text-measure": "^0.0.1"
+    "expo-text-measure": "^0.0.2"
   },
   "peerDependencies": {
     "expo-modules-core": "*"
